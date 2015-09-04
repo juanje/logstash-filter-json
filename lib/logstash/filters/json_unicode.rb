@@ -3,6 +3,7 @@ require "logstash/filters/base"
 require "logstash/namespace"
 require "logstash/json"
 require "logstash/timestamp"
+require "logstash/util/charset"
 
 # This is a JSON parsing filter. It takes an existing field which contains JSON and
 # expands it into an actual data structure within the Logstash event.
@@ -46,16 +47,27 @@ class LogStash::Filters::JsonUnicode < LogStash::Filters::Base
   # NOTE: if the `target` field already exists, it will be overwritten!
   config :target, :validate => :string
 
+  # The character encoding used in this codec. Examples include "UTF-8" and
+  # "CP1252".
+  #
+  # JSON requires valid UTF-8 strings, but in some cases, software that
+  # emits JSON does so in another encoding (nxlog, for example). In
+  # weird cases like this, you can set the `charset` setting to the
+  # actual encoding of the text and Logstash will convert it for you.
+  #
+  # For nxlog users, you may to set this to "CP1252".
+  config :charset, :validate => ::Encoding.name_list, :default => "UTF-8"
+
   public
   def register
-    # Nothing to do here
+    @converter = LogStash::Util::Charset.new(@charset)
   end # def register
 
   public
   def filter(event)
     return unless filter?(event)
 
-    @logger.debug("Running json filter", :event => event)
+    @logger.debug("Running json_unicode filter", :event => event)
 
     return unless event.include?(@source)
 
@@ -85,7 +97,7 @@ class LogStash::Filters::JsonUnicode < LogStash::Filters::Base
 
       filter_matched(event)
     rescue => e
-      tag = "_jsonparsefailure"
+      tag = "_json_unicode_parsefailure"
       event["tags"] ||= []
       event["tags"] << tag unless event["tags"].include?(tag)
       @logger.warn("Trouble parsing json", :source => @source,

@@ -10,9 +10,9 @@ require "logstash/timestamp"
 # By default it will place the parsed JSON in the root (top level) of the Logstash event, but this
 # filter can be configured to place the JSON into any arbitrary event field, using the
 # `target` configuration.
-class LogStash::Filters::Json < LogStash::Filters::Base
+class LogStash::Filters::JsonUnicode < LogStash::Filters::Base
 
-  config_name "json"
+  config_name "json_unicode"
 
   # The configuration for the JSON filter:
   # [source,ruby]

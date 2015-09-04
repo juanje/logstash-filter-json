@@ -64,6 +64,7 @@ class LogStash::Filters::JsonUnicode < LogStash::Filters::Base
     source = event[@source]
 
     begin
+      source = @converter.convert(source.gsub('\x', '\u00'))
       parsed = LogStash::Json.load(source)
       # If your parsed JSON is an array, we can't merge, so you must specify a
       # destination to store the JSON, so you will get an exception about
